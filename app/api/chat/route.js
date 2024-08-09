@@ -81,3 +81,42 @@ export async function POST(req) {
 
   return new NextResponse(stream);
 }
+
+
+async function retrieveDocuments(query) {
+  const url = 'https://api.semanticscholar.org/graph/v1/paper/search';
+  const queryParams = new URLSearchParams({
+    query: query,
+    limit: 3
+  });
+
+  try {
+    const response = await fetch(`${url}?${queryParams.toString()}`);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error retrieving documents:', error);
+    throw error;
+  }
+}
+
+export async function GET(req) {
+  try {
+    const documents = await retrieveDocuments("singing");
+
+    return new Response(JSON.stringify(documents), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}
