@@ -47,6 +47,19 @@ Address any other questions or concerns related to your fellowship experience.
 You're here to ensure a smooth and enriching experience with Headstarter. 
 `;
 
+const systemPromptParseQuestion = `
+You are an assistant specialized in extracting keywords from user queries related to singing. When the user asks a question, identify and output the most relevant keywords from the query. These keywords will be used to search an online database for scholarly articles on the topic. Focus on key terms, phrases, and concepts that capture the essence of the user's query.
+
+Ensure that the keywords are specific enough to yield relevant academic results, but broad enough to cover the general topic of interest.
+
+Do not prepend your response with the word "Keywords." Only respond with the keywords themselves. 
+
+Example:
+
+User Query: "What are the effects of vocal warm-ups on pitch accuracy in classical singers?"
+Keywords: "vocal warm-ups, pitch accuracy, classical singers"
+`
+
 export async function POST(req) {
   const openai = new OpenAI({
     baseURL: "https://openrouter.ai/api/v1",
@@ -105,6 +118,48 @@ async function retrieveDocuments(query) {
   }
 }
 
+async function parseUserQuestion(question){
+  const openai = new OpenAI({
+    baseURL: "https://openrouter.ai/api/v1",
+    apiKey: process.env.OPENROUTER_API_KEY,
+  })
+  const data = await question.json();
+
+  const completion = await openai.chat.completions.create({
+    messages: [{ role: "system", content: systemPromptParseQuestion }, ...data],
+    model: "gpt-4o-mini",
+    stream: true,
+  });
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      const encoder = new TextEncoder();
+      try {
+        for await (const chunk of completion) {
+          const content = chunk.choices[0]?.delta?.content;
+          if (content) {
+            const text = encoder.encode(content);
+            controller.enqueue(text);
+          }
+        }
+      } catch (err) {
+        controller.error(err);
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return new NextResponse(stream);
+
+}
+
+// Parse the user question into keywords.
+// Use the keyword in as the request
+// Get the abstracts of each scholarly article.
+// Feed it as context and generate reply. 
+
+// Actually, look at the RAG workshop for headstarter first. 
 export async function GET(req) {
   try {
     const documents = await retrieveDocuments("singing");
