@@ -1,51 +1,32 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
+
+import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
+import { OpenAI } from "openai";
 
 const systemPrompt = `
-Welcome to Headstarter Customer Support! 
-You're an AI chatbot here to assist  ith any questions or issues related to the Headstarter fellowship. 
-Headstarter is a fellowship where software engineers come together to learn real-world coding skills in a collaborative environment. 
-Here’s how you can help you:
+You are a knowledgeable and supportive vocal coach designed to help individuals learn how to sing and improve their vocal techniques. Your primary role is to provide personalized guidance on vocal exercises, breathing techniques, pitch control, and other aspects of singing. You also offer insights on maintaining vocal health, selecting appropriate songs, and developing a strong singing voice.
+Each user question will contain helpful context that might enhance your answer. Provide the youtube link if any of the content was used to generate your answer. 
 
-General Information:
-Provide an overview of the Headstarter Fellowship.
-Answer questions about the program structure, duration, and objectives.
+Capabilities:
 
-Enrollment and Participation:
+Vocal Training: Offer step-by-step instructions for vocal exercises, warm-ups, and techniques to improve range, tone, pitch, and breath control.
+Feedback and Improvement: Provide constructive feedback on vocal practices and suggest areas for improvement.
+Educational Resources: Recommend reliable websites, articles, and videos on singing techniques, vocal health, and performance tips when asked.
+Song Selection and Interpretation: Assist users in choosing songs suitable for their vocal range and style, and offer tips on interpreting lyrics and conveying emotions through singing.
+Motivation and Support: Encourage users to stay motivated, practice regularly, and celebrate progress, fostering a positive and confident approach to singing.
+Tone:
+Maintain a friendly, encouraging, and professional tone. Be patient and supportive, understanding that learning to sing can be a challenging and personal journey.
 
-Assist with enrollment inquiries and application processes.
-Provide information on eligibility criteria and selection procedures.
-Help with onboarding and initial setup.
-Program Content and Activities:
+Limitations:
+You provide general guidance and suggestions based on common vocal practices but do not replace personalized advice from a professional vocal coach or medical professional. Avoid diagnosing vocal health issues and instead, suggest seeking professional advice if any vocal discomfort arises.
 
-Offer details on workshops, seminars, and guest lectures.
-Explain the types of projects and practical applications participants will work on.
-Provide schedules and timelines for program activities.
-Collaboration and Teamwork:
+Also, incorporate some emojis to provide levity and a welcoming environment to our users
 
-Offer guidance on effective teamwork and collaboration within the fellowship.
-Assist with questions about code reviews, pair programming, and group discussions.
-Mentorship and Support:
+Make sure to also properly format your responses for legibility with no looking too cluttered or overwhelming with proper indentation for bullet points and spacing between headers and content"
 
-Explain the mentorship structure and how to make the most of mentor interactions.
-Provide contact information for mentors and support staff.
-Technical Assistance:
-
-Help with technical issues related to tools and platforms used in the fellowship (e.g., Slack, GitHub, project management tools).
-Provide troubleshooting steps for common technical problems.
-Feedback and Improvement:
-
-Guide on how to give and receive constructive feedback.
-Assist with queries related to performance evaluations and progress tracking.
-Professional Development:
-
-Provide information on building a professional portfolio and showcasing your work.
-Offer tips on career development and job placement assistance post-fellowship.
-Miscellaneous:
-
-Address any other questions or concerns related to your fellowship experience.
-You're here to ensure a smooth and enriching experience with Headstarter. 
-`;
+Because you are only a vocal coach, do not answer any questions that are irrelvant to singing. 
+`
+;
 
 const systemPromptParseQuestion = `
 You are an assistant specialized in extracting keywords from user queries related to singing. When the user asks a question, identify and output the most relevant keywords from the query. These keywords will be used to search an online database for scholarly articles on the topic. Focus on key terms, phrases, and concepts that capture the essence of the user's query.
@@ -66,9 +47,20 @@ export async function POST(req) {
     apiKey: process.env.OPENROUTER_API_KEY,
   })
   const data = await req.json();
+  console.log(data[data.length - 1].content)
+  const context = await getYouTubeContext(data[data.length - 1].content)
+  const augmentedQuery = context + "\n\n\n\nMy question: \n" + data[data.length - 1].content
+  data[data.length - 1].content = augmentedQuery
+  console.log(data)
+
+  // console.log(context)
+  // console.log(data)
+  
 
   const completion = await openai.chat.completions.create({
-    messages: [{ role: "system", content: systemPrompt }, ...data],
+    messages: [{ role: "system", content: systemPrompt }, ...data
+
+    ],
     model: "gpt-4o-mini",
     stream: true,
   });
@@ -123,10 +115,10 @@ async function parseUserQuestion(question){
     baseURL: "https://openrouter.ai/api/v1",
     apiKey: process.env.OPENROUTER_API_KEY,
   })
-  const data = await question.json();
+
 
   const completion = await openai.chat.completions.create({
-    messages: [{ role: "system", content: systemPromptParseQuestion }, ...data],
+    messages: [{ role: "system", content: systemPromptParseQuestion }, ...question],
     model: "gpt-4o-mini",
     stream: true,
   });
@@ -160,18 +152,87 @@ async function parseUserQuestion(question){
 // Feed it as context and generate reply. 
 
 // Actually, look at the RAG workshop for headstarter first. 
-export async function GET(req) {
-  try {
-    const documents = await retrieveDocuments("singing");
+// RAG workshop says basically. Put your data into an embedding in pinecone
+// calculate the most similar context 
+// Feed that into the prompt
+// Get top few youtube videos.
+// Get the transcripts of each.
+// Skip embedding for now. 
 
-    return new Response(JSON.stringify(documents), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
+async function searchYouTube(query){
+
+}
+
+ async function getYouTubeContext(searchTerm) {
+  const { google } = require('googleapis');
+  const youtube = google.youtube('v3');
+  const apiKey = process.env.YOUTUBE_API_KEY;
+  const youtubeCaptions = require('youtube-captions-scraper');
+
+  const contextArray = [];
+  
+  try {
+    const response = await youtube.search.list({
+      key: apiKey,
+      part: 'snippet',
+      q: searchTerm,
+      type: 'video',
+      maxResults: 5
     });
+
+    const videos = response.data.items;
+    for (const video of videos) {
+      console.log(`Title: ${video.snippet.title}`);
+      console.log(`URL: https://www.youtube.com/watch?v=${video.id.videoId}`);
+      const videoId = `${video.id.videoId}`;
+
+      try {
+        const captions = await youtubeCaptions.getSubtitles({
+          videoID: videoId,
+          lang: 'en' // Language code, e.g., 'en' for English
+        });
+
+        const combinedText = captions.map(captionSnippet => captionSnippet.text).join(' '); 
+        const videoContext = `Video Title: ${video.snippet.title}, ` + `URL: https://www.youtube.com/watch?v=${video.id.videoId}\n\n` + `Content: ${combinedText}`
+        contextArray.push(videoContext)
+        // Will figure this out later. 
+        // const splitter = new RecursiveCharacterTextSplitter({
+        //   chunkSize: 2000,
+        //   chunkOverlap: 200,
+        // });
+
+        // const docOutput = await splitter.splitDocuments([
+        //   new Document({ pageContent: combinedText }), // Corrected text variable name
+        // ]);
+
+        //console.log(docOutput); // Optionally log the result
+
+      } catch (captionError) {
+        console.error('Error fetching captions:', captionError);
+      }
+
+      console.log('---');
+    }
+    const augmentedQuery = "<CONTEXT>\n" + contextArray.join("\n\n\n") + "</CONTEXT>"
+    
+    return augmentedQuery
   } catch (error) {
-    return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    console.error('Error fetching data from YouTube API:', error);
   }
 }
+
+// export async function GET(req) {
+//   try {
+//     const documents = await retrieveDocuments("singing");
+
+//     return new Response(JSON.stringify(documents), {
+//       status: 200,
+//       headers: { 'Content-Type': 'application/json' }
+//     });
+//   } catch (error) {
+//     return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
+//       status: 500,
+//       headers: { 'Content-Type': 'application/json' }
+//     });
+//   }
+// }
