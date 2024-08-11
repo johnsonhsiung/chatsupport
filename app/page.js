@@ -9,7 +9,7 @@ import MicIcon from "@mui/icons-material/Mic";
 import EmojiPicker from 'emoji-picker-react';
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import ResponsiveAppBar from "./components/Navbar";
+import ResponsiveAppBar from "./components/Navbar.js";
 
 export default function Home() {
   const theme = useTheme();
