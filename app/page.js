@@ -132,10 +132,9 @@ export default function Home() {
                   borderRadius={2}
                   p={3}
                 >
-                  <ReactMarkdown
-                    children={message.content}
-                    remarkPlugins={[remarkGfm]}
-                  ></ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {message.content}
+                  </ReactMarkdown>
                 </Box>
               </Box>
             ))}
