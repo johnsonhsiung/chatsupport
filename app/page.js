@@ -1,14 +1,18 @@
 "use client";
 import Image from "next/image";
-import { Box, Stack, TextField, Button } from "@mui/material";
+import { Box, Stack, TextField, Button, Fab, THe } from "@mui/material";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
+import ResponsiveAppBar from "./components/Navbar";
+import SendIcon from "@mui/icons-material/Send";
 import { useState } from "react";
 
 export default function Home() {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: `Hi I'm the Headstarter Support Agent, how can I assist you today?`,
+      content: `Hello, how can I assist you with your signing journey?`,
     },
   ]);
   const [message, setMessage] = useState("");
@@ -53,61 +57,137 @@ export default function Home() {
     <Box
       width="100vw"
       height="100vh"
-      display="flex"
       flexDirection="column"
       justifyContent="center"
       alignItems="center"
+      sx={{ background: "linear-gradient(to right,#060F14, #132f3f)" }}
+      p={0}
     >
-      <Stack
-        direction="column"
-        width="600px"
-        height="700px"
-        border="1px solid black"
-        p={2}
-        spacing={3}
+      <ResponsiveAppBar />
+      <Box
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+        alignItems="center"
+        p={5}
       >
         <Stack
           direction="column"
-          spacing={2}
-          flexGrow={1}
-          overflow="auto"
-          maxHeight="100%"
+          width="1000px"
+          height="700px"
+          sx={{ background: "linear-gradient(#060F14, #132f3f)" }}
+          boxShadow="rgba(0, 0, 0, 0.45) 0px 25px 20px -20px;"
+          borderRadius="20px"
+          p={4}
+          spacing={3}
         >
-          {messages.map((message, index) => (
-            <Box
-              key={index}
-              display="flex"
-              justifyContent={
-                message.role === "assistant" ? "flext-start" : "flex-end"
-              }
-            >
+          <Stack
+            direction="column"
+            spacing={2}
+            p={3}
+            flexGrow={1}
+            maxHeight="100%"
+            sx={{
+              overflow: "auto",
+              "&::-webkit-scrollbar": {
+                width: "20px", // Custom width for scrollbar
+                height: "10px",
+              },
+              "&:hover": {
+                overflow: "auto",
+                "&::-webkit-scrollbar": {
+                  width: "20px", // Custom width for scrollbar
+                  height: "10px",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  transition: "2s",
+                  backgroundColor: "#132f3f", // Scrollbar thumb color
+                  borderRadius: "10px", // Round the corners of the scrollbar thumb
+                },
+                "&::-webkit-scrollbar-track": {
+                  backgroundColor: "transparent", // Scrollbar track color
+                  borderRadius: "10px", // Round the corners of the scrollbar track
+                },
+              },
+            }}
+          >
+            {messages.map((message, index) => (
               <Box
-                bgcolor={
-                  message.role === "assistant"
-                    ? "primary.main"
-                    : "secondary.main"
+                key={index}
+                display="flex"
+                justifyContent={
+                  message.role === "assistant" ? "flext-start" : "flex-end"
                 }
-                color="white"
-                borderRadius={16}
-                p={3}
               >
-                {message.content}
+                <Box
+                  color="white"
+                  sx={{
+                    background: "rgba(144, 145, 158, 0.17)",
+                    borderRadius: "16px",
+                    boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
+                    backdropFilter: "blur(5px)",
+                    "&::-webkit-backdrop-filter": "blur(5px)",
+                    border: "1px solid rgba(144, 145, 158, 0.14)",
+                  }}
+                  borderRadius={2}
+                  p={3}
+                >
+                  <ReactMarkdown
+                    children={message.content}
+                    remarkPlugins={[remarkGfm]}
+                  ></ReactMarkdown>
+                </Box>
               </Box>
-            </Box>
-          ))}
+            ))}
+          </Stack>
+          <Stack
+            sx={{ border: "2px solid #060F14" }}
+            bgcolor="transparent"
+            direction="row"
+            spacing={2}
+            borderRadius="20px"
+            borderColor="transparent"
+          >
+            <TextField
+              placeholder="Ask Away!"
+              border="none"
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderRadius: "0px",
+                    border: "0px solid rgba(0,0,0,0)",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "white", // Border color when focused
+                    border: "2px solid #FFFFFF",
+                    borderRadius: "20px",
+                  },
+                },
+                "& .MuiInputBase-input": {
+                  color: "white", // Text color
+                },
+              }}
+              InputProps={{
+                endAdornment: (
+                  <SendIcon
+                    onClick={sendMessage}
+                    sx={{
+                      cursor: "pointer",
+                      "&:hover": {
+                        cursor: "pointer", // Border color when hovered
+                      },
+                    }}
+                  />
+                ),
+                disableUnderline: true,
+              }}
+              fullWidth
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+            ></TextField>
+          </Stack>
         </Stack>
-        <Stack direction="row" spacing={2}>
-          <TextField
-            lable="message"
-            fullWidth
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-          ></TextField>{" "}
-          <Button variant="contained" onClick={sendMessage}>
-            Send
-          </Button>
-        </Stack>
-      </Stack>
+      </Box>
     </Box>
   );
 }
