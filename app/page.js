@@ -227,13 +227,14 @@ export default function Home() {
                   color: darkMode ? "white" : "black",
                 },
               }}
+              /*
               InputProps={{
                 endAdornment: (
                   <IconButton onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
                     <EmojiEmotionsIcon />
                   </IconButton>
                 ),
-              }}
+              }}*/
               fullWidth
               value={message}
               onChange={(e) => setMessage(e.target.value)}
