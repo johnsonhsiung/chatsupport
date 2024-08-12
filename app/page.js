@@ -214,13 +214,13 @@ export default function Home() {
               sx={{
                 "& .MuiOutlinedInput-root": {
                   "& fieldset": {
-                    borderRadius: "0px",
+                    borderRadius: "20px",
                     border: "0px solid rgba(0,0,0,0)",
                   },
                   "&.Mui-focused fieldset": {
-                    borderColor: "white",
-                    border: "2px solid #FFFFFF",
+                    border: "0px solid rgba(0,0,0,0)",
                     borderRadius: "20px",
+                    outline: "none"
                   },
                 },
                 "& .MuiInputBase-input": {
@@ -233,7 +233,6 @@ export default function Home() {
                     <EmojiEmotionsIcon />
                   </IconButton>
                 ),
-                disableUnderline: true,
               }}
               fullWidth
               value={message}
