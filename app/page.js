@@ -14,7 +14,7 @@ import ResponsiveAppBar from "./components/Navbar.js";
 export default function Home() {
   const theme = useTheme();
   const [messages, setMessages] = useState([
-    { role: "assistant", content: `Hello, how can I assist you with your signing journey?` },
+    { role: "assistant", content: `Hello, how can I assist you with your singing journey?` },
   ]);
   const [message, setMessage] = useState("");
   const [darkMode, setDarkMode] = useState(false);
