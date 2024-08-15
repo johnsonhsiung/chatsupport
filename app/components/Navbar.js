@@ -58,7 +58,7 @@ function ResponsiveAppBar() {
               textDecoration: "none",
             }}
           >
-            Singw/US.AI
+            VolCoach.AI
           </Typography>
 
           <AdbIcon sx={{ display: { xs: "flex", md: "none" }, mr: 1 }} />
