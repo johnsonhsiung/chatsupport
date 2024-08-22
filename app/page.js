@@ -1,20 +1,38 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Box, Stack, TextField, IconButton, Typography, useTheme } from "@mui/material";
+import {
+  Box,
+  Stack,
+  TextField,
+  IconButton,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import NightlightRoundIcon from "@mui/icons-material/NightlightRound";
 import WbSunnyIcon from "@mui/icons-material/WbSunny";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import MicIcon from "@mui/icons-material/Mic";
-import EmojiPicker from 'emoji-picker-react';
+import EmojiPicker from "emoji-picker-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import ResponsiveAppBar from "./components/Navbar.js";
+import { styled } from "@mui/system";
+
+// Custom styles for the link
+const StyledMarkdown = styled("div")(({ theme }) => ({
+  a: {
+    color: "white",
+  },
+}));
 
 export default function Home() {
   const theme = useTheme();
   const [messages, setMessages] = useState([
-    { role: "assistant", content: `Hello, how can I assist you with your singing journey?` },
+    {
+      role: "assistant",
+      content: `Hello, how can I assist you with your singing journey?`,
+    },
   ]);
   const [message, setMessage] = useState("");
   const [darkMode, setDarkMode] = useState(false);
@@ -24,20 +42,23 @@ export default function Home() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
         const recog = new SpeechRecognition();
         recog.continuous = false; // Stops automatically after a single result
         recog.interimResults = true; // Process results as they are spoken
-        recog.lang = 'en-US'; // Set language to English (US)
+        recog.lang = "en-US"; // Set language to English (US)
 
         recog.onstart = () => {
-          console.log('Voice recognition activated. Speak into the microphone.');
+          console.log(
+            "Voice recognition activated. Speak into the microphone."
+          );
         };
 
         recog.onresult = (event) => {
-          let interimTranscript = '';
-          let finalTranscript = '';
+          let interimTranscript = "";
+          let finalTranscript = "";
 
           for (let i = 0; i < event.results.length; i++) {
             const transcript = event.results[i][0].transcript;
@@ -48,10 +69,10 @@ export default function Home() {
             }
           }
 
-          console.log('Interim Transcript:', interimTranscript);
-          console.log('Final Transcript:', finalTranscript);
+          console.log("Interim Transcript:", interimTranscript);
+          console.log("Final Transcript:", finalTranscript);
 
-          setMessage(prev => prev + finalTranscript);
+          setMessage((prev) => prev + finalTranscript);
           if (finalTranscript) {
             recognition.stop();
             setIsListening(false);
@@ -59,12 +80,12 @@ export default function Home() {
         };
 
         recog.onend = () => {
-          console.log('Voice recognition stopped.');
+          console.log("Voice recognition stopped.");
           setIsListening(false);
         };
 
         recog.onerror = (event) => {
-          console.error('Speech recognition error detected:', event.error);
+          console.error("Speech recognition error detected:", event.error);
           setIsListening(false);
           recog.stop();
         };
@@ -114,7 +135,7 @@ export default function Home() {
   };
 
   const handleKeyDown = (event) => {
-    if (event.key === 'Enter') {
+    if (event.key === "Enter") {
       event.preventDefault(); // Prevents the default action (like a newline)
       sendMessage();
     }
@@ -154,8 +175,23 @@ export default function Home() {
             spacing: 3,
           }}
         >
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography variant="h4" sx={{ fontWeight: "bold", fontSize: "1.5em", letterSpacing: "0.1em", borderBottom: "2px solid", borderBottomColor: darkMode ? "#3498db" : "#8e44ad", pb: 1, mb: 2 }}>
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: "bold",
+                fontSize: "1.5em",
+                letterSpacing: "0.1em",
+                borderBottom: "2px solid",
+                borderBottomColor: darkMode ? "#3498db" : "#8e44ad",
+                pb: 1,
+                mb: 2,
+              }}
+            >
               ChatSupport
             </Typography>
             <IconButton onClick={toggleDarkMode}>
@@ -180,12 +216,21 @@ export default function Home() {
               <Box
                 key={index}
                 display="flex"
-                justifyContent={message.role === "assistant" ? "flex-start" : "flex-end"}
+                justifyContent={
+                  message.role === "assistant" ? "flex-start" : "flex-end"
+                }
               >
                 <Box
                   color="white"
                   sx={{
-                    background: message.role === "assistant" ? (darkMode ? "#060F14" : "#132f3f") : (darkMode ? "#060F14" : "#132f3f"),
+                    background:
+                      message.role === "assistant"
+                        ? darkMode
+                          ? "#060F14"
+                          : "#132f3f"
+                        : darkMode
+                        ? "#060F14"
+                        : "#132f3f",
                     borderRadius: "16px",
                     boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
                     backdropFilter: "blur(5px)",
@@ -193,9 +238,11 @@ export default function Home() {
                   }}
                   p={3}
                 >
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {message.content}
-                  </ReactMarkdown>
+                  <StyledMarkdown>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {message.content}
+                    </ReactMarkdown>
+                  </StyledMarkdown>
                 </Box>
               </Box>
             ))}
@@ -220,7 +267,7 @@ export default function Home() {
                   "&.Mui-focused fieldset": {
                     border: "0px solid rgba(0,0,0,0)",
                     borderRadius: "20px",
-                    outline: "none"
+                    outline: "none",
                   },
                 },
                 "& .MuiInputBase-input": {
@@ -249,7 +296,14 @@ export default function Home() {
           </Stack>
 
           {showEmojiPicker && (
-            <Box sx={{ position: "absolute", bottom: "70px", right: "50px", zIndex: 1000 }}>
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: "70px",
+                right: "50px",
+                zIndex: 1000,
+              }}
+            >
               <EmojiPicker onEmojiClick={onEmojiClick} />
             </Box>
           )}

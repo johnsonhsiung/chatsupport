@@ -47,11 +47,11 @@ export async function POST(req) {
     apiKey: process.env.OPENROUTER_API_KEY,
   })
   const data = await req.json();
-  console.log(data[data.length - 1].content)
+  // console.log(data[data.length - 1].content)
   const context = await getYouTubeContext(data[data.length - 1].content)
   const augmentedQuery = context + "\n\n\n\nMy question: \n" + data[data.length - 1].content
   data[data.length - 1].content = augmentedQuery
-  console.log(data)
+  // console.log(data)
 
   // console.log(context)
   // console.log(data)
@@ -182,8 +182,8 @@ async function searchYouTube(query){
 
     const videos = response.data.items;
     for (const video of videos) {
-      console.log(`Title: ${video.snippet.title}`);
-      console.log(`URL: https://www.youtube.com/watch?v=${video.id.videoId}`);
+      //console.log(`Title: ${video.snippet.title}`);
+      //console.log(`URL: https://www.youtube.com/watch?v=${video.id.videoId}`);
       const videoId = `${video.id.videoId}`;
 
       try {
