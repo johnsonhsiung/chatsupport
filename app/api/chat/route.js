@@ -177,7 +177,7 @@ async function searchYouTube(query){
       part: 'snippet',
       q: searchTerm,
       type: 'video',
-      maxResults: 5
+      maxResults: 3
     });
 
     const videos = response.data.items;
